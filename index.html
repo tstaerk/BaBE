@@ -1,0 +1,1103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A friendly guide to the Linux shell: commands, pipelines, scripts, and safer habits.">
+  <title>Linux Shell Guide</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17201d;
+      --muted: #5b6662;
+      --paper: #f7f4ed;
+      --panel: #ffffff;
+      --line: #d8ded8;
+      --green: #237a57;
+      --teal: #0f6b78;
+      --amber: #b46618;
+      --red: #b43d31;
+      --charcoal: #111816;
+      --code: #0d1412;
+      --shadow: 0 18px 48px rgba(24, 33, 29, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .skip-link {
+      position: absolute;
+      left: 1rem;
+      top: -4rem;
+      z-index: 20;
+      padding: 0.75rem 1rem;
+      background: var(--charcoal);
+      color: #fff;
+      border-radius: 6px;
+    }
+
+    .skip-link:focus {
+      top: 1rem;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(17, 24, 22, 0.9);
+      backdrop-filter: blur(16px);
+      color: #f4f7f4;
+    }
+
+    .nav-inner {
+      width: min(1120px, calc(100% - 32px));
+      min-height: 64px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .prompt-mark {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 6px;
+      background: #1d2b27;
+      color: #8ce1b4;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-weight: 900;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav-links a {
+      padding: 0.55rem 0.7rem;
+      border-radius: 6px;
+      color: #dbe4df;
+      font-size: 0.92rem;
+      text-decoration: none;
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus-visible {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      outline: none;
+    }
+
+    .hero {
+      min-height: calc(100vh - 64px);
+      display: grid;
+      align-items: end;
+      position: relative;
+      overflow: hidden;
+      background: var(--charcoal);
+      color: #f7faf7;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(8, 13, 12, 0.92) 0%, rgba(8, 13, 12, 0.68) 44%, rgba(8, 13, 12, 0.24) 100%),
+        linear-gradient(0deg, rgba(8, 13, 12, 0.82) 0%, rgba(8, 13, 12, 0.02) 48%);
+      z-index: 1;
+    }
+
+    .hero img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: clamp(5rem, 12vh, 8rem) 0 clamp(3rem, 8vh, 5rem);
+    }
+
+    .eyebrow {
+      margin: 0 0 0.9rem;
+      color: #8ce1b4;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(3rem, 9vw, 6.8rem);
+      line-height: 0.92;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 660px;
+      margin: 1.4rem 0 0;
+      color: #d9e3de;
+      font-size: clamp(1.08rem, 2vw, 1.35rem);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin-top: 2rem;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0.75rem 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 6px;
+      background: #f3f7f1;
+      color: #111816;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .button.secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #f7faf7;
+    }
+
+    main {
+      background: var(--paper);
+    }
+
+    .section {
+      padding: clamp(3.5rem, 7vw, 6rem) 0;
+    }
+
+    .section.alt {
+      background: #eaf0ec;
+    }
+
+    .wrap {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .section-header {
+      max-width: 760px;
+      margin-bottom: 2rem;
+    }
+
+    .section-header h2 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .section-header p {
+      margin: 1rem 0 0;
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      min-width: 0;
+      padding: 1.25rem;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 2px 0 rgba(23, 32, 29, 0.03);
+    }
+
+    .card h3 {
+      margin: 0 0 0.55rem;
+      font-size: 1.08rem;
+      line-height: 1.25;
+    }
+
+    .card p,
+    .card ul {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .card ul {
+      padding-left: 1.2rem;
+    }
+
+    .terminal {
+      border: 1px solid #2d3d38;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--code);
+      color: #d5eadf;
+      box-shadow: var(--shadow);
+    }
+
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 42px;
+      padding: 0 1rem;
+      border-bottom: 1px solid #283630;
+      background: #17201d;
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 999px;
+      background: var(--red);
+    }
+
+    .dot:nth-child(2) {
+      background: var(--amber);
+    }
+
+    .dot:nth-child(3) {
+      background: var(--green);
+    }
+
+    pre {
+      margin: 0;
+      padding: 1.25rem;
+      overflow-x: auto;
+      font: 0.95rem/1.7 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      tab-size: 2;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .cmd {
+      color: #8ce1b4;
+    }
+
+    .note {
+      color: #ffcc83;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      gap: clamp(1rem, 4vw, 2rem);
+      align-items: start;
+    }
+
+    .command-list {
+      display: grid;
+      gap: 0.65rem;
+    }
+
+    .command {
+      display: grid;
+      grid-template-columns: minmax(120px, 0.45fr) minmax(0, 1fr);
+      gap: 1rem;
+      align-items: baseline;
+      padding: 0.9rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .command code {
+      color: var(--teal);
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .command span {
+      color: var(--muted);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 36px;
+      padding: 0.45rem 0.75rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .habit-list {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+    }
+
+    .habit {
+      padding: 0.9rem 1rem;
+      border-left: 4px solid var(--green);
+      background: rgba(255, 255, 255, 0.72);
+      border-radius: 0 8px 8px 0;
+      color: var(--muted);
+    }
+
+    .habit strong {
+      display: block;
+      margin-bottom: 0.15rem;
+      color: var(--ink);
+    }
+
+    .cheatsheet {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .script-map {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .lesson {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 2px 0 rgba(23, 32, 29, 0.03);
+    }
+
+    .lesson h3 {
+      margin: 0 0 0.55rem;
+      font-size: 1.15rem;
+      line-height: 1.25;
+    }
+
+    .lesson p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .lesson-note {
+      margin-top: 0.75rem;
+      padding: 0.75rem 0.85rem;
+      border-left: 4px solid var(--teal);
+      border-radius: 0 8px 8px 0;
+      background: #edf8f7;
+      color: #264744;
+    }
+
+    .lesson .terminal {
+      box-shadow: none;
+    }
+
+    .script-map code {
+      overflow-wrap: anywhere;
+    }
+
+    .callout {
+      border-left: 5px solid var(--amber);
+      padding: 1.2rem 1.25rem;
+      background: #fff8e8;
+      border-radius: 0 8px 8px 0;
+      color: #443524;
+    }
+
+    .footer {
+      padding: 2rem 0;
+      background: var(--charcoal);
+      color: #c8d3ce;
+    }
+
+    .footer .wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .footer a {
+      color: #8ce1b4;
+      text-decoration: none;
+      font-weight: 800;
+    }
+
+    @media (max-width: 840px) {
+      .nav-inner {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 0.9rem 0;
+      }
+
+      .nav-links {
+        justify-content: flex-start;
+      }
+
+      .hero {
+        min-height: 760px;
+      }
+
+      .hero::before {
+        background:
+          linear-gradient(90deg, rgba(8, 13, 12, 0.94) 0%, rgba(8, 13, 12, 0.72) 100%),
+          linear-gradient(0deg, rgba(8, 13, 12, 0.85) 0%, rgba(8, 13, 12, 0.12) 56%);
+      }
+
+      .grid,
+      .two-col,
+      .cheatsheet {
+        grid-template-columns: 1fr;
+      }
+
+      .lesson {
+        grid-template-columns: 1fr;
+      }
+
+      .command {
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .nav-links a {
+        padding-inline: 0.5rem;
+      }
+
+      .hero {
+        min-height: 700px;
+      }
+
+      .button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="nav" aria-label="Primary navigation">
+    <div class="nav-inner">
+      <a class="brand" href="#top" aria-label="Linux Shell Guide home">
+        <span class="prompt-mark">$</span>
+        <span>Linux Shell Guide</span>
+      </a>
+      <div class="nav-links">
+        <a href="#basics">Basics</a>
+        <a href="#open">Open</a>
+        <a href="#commands">Commands</a>
+        <a href="#scripting">Scripting</a>
+        <a href="#cheatsheet">Cheat Sheet</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero" id="top">
+    <img src="assets/linux-shell-hero.png" alt="A Linux terminal on a modern workstation desk">
+    <div class="hero-content">
+      <p class="eyebrow">user@linux:~$ learn --shell</p>
+      <h1>Linux Shell</h1>
+      <p>The shell is the fastest way to talk to a Linux system: inspect files, combine tools, automate work, and understand what your computer is actually doing.</p>
+      <div class="hero-actions">
+        <a class="button" href="#commands">Explore Commands</a>
+        <a class="button secondary" href="#scripting">Write a Script</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="section" id="basics">
+      <div class="wrap">
+        <div class="section-header">
+          <h2>What Is The Shell?</h2>
+          <p>You usually open a terminal app first. The terminal is the window; the shell is the program inside that window that reads your commands and runs them.</p>
+        </div>
+        <div class="grid" aria-label="Shell concepts">
+          <article class="card">
+            <h3>Terminal</h3>
+            <p>The terminal is the app you open, such as GNOME Terminal, Konsole, Terminal, Windows Terminal, or another command-line window.</p>
+          </article>
+          <article class="card">
+            <h3>Shell</h3>
+            <p>The shell runs inside the terminal. Common Linux shells include <code>bash</code>, <code>zsh</code>, and <code>fish</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Prompt</h3>
+            <p>The prompt shows that the shell is ready. It often includes your username, host, current folder, and a <code>$</code> or <code>#</code> symbol.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="open">
+      <div class="wrap two-col">
+        <div>
+          <div class="section-header">
+            <h2>How To Open A Shell</h2>
+            <p>Look for a terminal app. Once it opens, you will see a prompt where you can type commands such as <code>pwd</code> or <code>ls</code>.</p>
+          </div>
+          <div class="command-list">
+            <div class="command"><code>Linux desktop</code><span>Open the app menu and search for Terminal, Console, or Konsole. On many desktops, <code>Ctrl</code> + <code>Alt</code> + <code>T</code> opens it.</span></div>
+            <div class="command"><code>macOS</code><span>Open Applications, then Utilities, then Terminal. macOS uses a Unix shell, so most basic commands feel similar.</span></div>
+            <div class="command"><code>Windows</code><span>Install or open WSL, then launch Ubuntu or another Linux distribution from Windows Terminal.</span></div>
+            <div class="command"><code>Server</code><span>Use <code>ssh user@server</code> from an existing terminal to open a shell on a remote Linux machine.</span></div>
+          </div>
+        </div>
+
+        <div class="terminal" aria-label="Opening a terminal example">
+          <div class="terminal-bar">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+<pre><code><span class="note">Open Terminal, then try:</span>
+
+<span class="cmd">$ pwd</span>
+/home/ada
+
+<span class="cmd">$ whoami</span>
+ada
+
+<span class="cmd">$ echo "Hello, shell"</span>
+Hello, shell</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="commands">
+      <div class="wrap two-col">
+        <div>
+          <div class="section-header">
+            <h2>Commands You Will Use Daily</h2>
+            <p>Most shell work is navigation, inspection, filtering, and moving data between programs.</p>
+          </div>
+          <div class="command-list">
+            <div class="command"><code>pwd</code><span>Print the folder you are currently in.</span></div>
+            <div class="command"><code>ls -la</code><span>List files, including hidden files and permissions.</span></div>
+            <div class="command"><code>cd projects</code><span>Move into another directory.</span></div>
+            <div class="command"><code>grep -R "TODO" .</code><span>Search files recursively for matching text.</span></div>
+            <div class="command"><code>chmod +x script.sh</code><span>Make a script executable.</span></div>
+            <div class="command"><code>man tar</code><span>Open the manual page for a command.</span></div>
+          </div>
+        </div>
+
+        <div class="terminal" aria-label="Example terminal session">
+          <div class="terminal-bar">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+<pre><code><span class="cmd">$ pwd</span>
+/home/ada/projects
+
+<span class="cmd">$ ls -la</span>
+drwxr-xr-x  app
+-rw-r--r--  README.md
+-rwxr-xr-x  deploy.sh
+
+<span class="cmd">$ grep -R "listen" app</span>
+app/server.js: server.listen(3000)
+
+<span class="cmd">$ ./deploy.sh</span>
+<span class="note">Building site...</span>
+<span class="note">Done.</span></code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-header">
+          <h2>Pipes, Redirection, And Globs</h2>
+          <p>The shell becomes powerful when commands are combined. You can filter output, save it to a file, or select many files with patterns.</p>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <h3>Pipe</h3>
+            <p><code>ps aux | grep nginx</code> sends the output of one command into the input of the next.</p>
+          </article>
+          <article class="card">
+            <h3>Redirect</h3>
+            <p><code>echo hello &gt; note.txt</code> writes output into a file. Use <code>&gt;&gt;</code> to append instead.</p>
+          </article>
+          <article class="card">
+            <h3>Glob</h3>
+            <p><code>cp *.txt archive/</code> matches every filename ending in <code>.txt</code> in the current folder.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="scripting">
+      <div class="wrap">
+        <div class="two-col">
+          <div>
+            <div class="section-header">
+              <h2>Write A Script</h2>
+              <p>A bash script is a file of shell commands. Start with a shebang, make the file executable, then build up from variables, parameters, conditions, loops, and helper programs.</p>
+            </div>
+            <div class="habit-list" aria-label="Script habits">
+              <div class="habit">
+                <strong>Start with <code>#!/usr/bin/env bash</code></strong>
+                This tells the system to run the file with bash when you execute it directly.
+              </div>
+              <div class="habit">
+                <strong>Quote variables, like <code>"$file"</code></strong>
+                Quotes keep filenames with spaces from being split into separate words.
+              </div>
+              <div class="habit">
+                <strong>Prefer <code>$()</code> for command output</strong>
+                It stores command output clearly and can be nested inside other commands.
+              </div>
+            </div>
+          </div>
+
+          <div class="terminal" aria-label="Example shell script">
+          <div class="terminal-bar">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+<pre><code>#!/usr/bin/env bash
+set -euo pipefail
+
+site_dir="public"
+backup_dir="backup"
+
+mkdir -p "$backup_dir"
+tar -czf "$backup_dir/site.tgz" "$site_dir"
+
+echo "Backup written to $backup_dir/site.tgz"</code></pre>
+          </div>
+        </div>
+
+        <div class="script-map" aria-label="Shell scripting lessons">
+          <article class="lesson">
+            <div>
+              <h3>1. Hello World</h3>
+              <p>Create <code>hello.sh</code>. The first line chooses bash, and the second line prints text.</p>
+              <div class="lesson-note">Outcome: when you run the script, the terminal prints one line and then returns to the prompt.</div>
+            </div>
+            <div class="terminal" aria-label="Hello world script and output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code><span class="cmd">$ cat hello.sh</span>
+#!/usr/bin/env bash
+echo "Hello, world!"
+
+<span class="cmd">$ bash hello.sh</span>
+Hello, world!</code></pre>
+            </div>
+          </article>
+
+          <article class="lesson">
+            <div>
+              <h3>2. Make It Executable</h3>
+              <p><code>chmod +x</code> adds execute permission. After that, <code>./hello.sh</code> runs the file from the current directory.</p>
+              <div class="lesson-note">Outcome: the command behaves like a small program you made yourself.</div>
+            </div>
+            <div class="terminal" aria-label="Executable script output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code><span class="cmd">$ chmod +x hello.sh</span>
+<span class="cmd">$ ./hello.sh</span>
+Hello, world!</code></pre>
+            </div>
+          </article>
+
+          <article class="lesson">
+            <div>
+              <h3>3. Call Commands</h3>
+              <p>A script can call the same commands you type manually. This example prints a heading, then lists files with newest files at the bottom.</p>
+              <div class="lesson-note">Outcome: the output of <code>echo</code> appears first, followed by the output of <code>ls -ltr</code>.</div>
+            </div>
+            <div class="terminal" aria-label="Calling commands output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code>echo "Latest files:"
+ls -ltr
+
+<span class="cmd">$ bash list.sh</span>
+Latest files:
+-rw-r--r--  README.md
+-rwxr-xr-x  hello.sh</code></pre>
+            </div>
+          </article>
+
+          <article class="lesson">
+            <div>
+              <h3>4. Variables And Input</h3>
+              <p><code>read name</code> waits for the user to type something. The shell stores it in <code>name</code>, then <code>${name}</code> inserts the value.</p>
+              <div class="lesson-note">Outcome: the script changes its greeting based on what the user typed.</div>
+            </div>
+            <div class="terminal" aria-label="Variables and input output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code>echo "What is your name?"
+read name
+echo "Hello, ${name}"
+
+<span class="cmd">$ bash greet.sh</span>
+What is your name?
+Ada
+Hello, Ada</code></pre>
+            </div>
+          </article>
+
+          <article class="lesson">
+            <div>
+              <h3>5. Arrays And Parameters</h3>
+              <p><code>$1</code> is the first script argument, and <code>$@</code> is all arguments. An array lets you pick one value by number.</p>
+              <div class="lesson-note">Outcome: the script can use words supplied when it was started.</div>
+            </div>
+            <div class="terminal" aria-label="Parameters output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code>args=("$@")
+echo "First: $1"
+echo "All: ${args[@]}"
+
+<span class="cmd">$ bash args.sh alpha beta gamma</span>
+First: alpha
+All: alpha beta gamma</code></pre>
+            </div>
+          </article>
+
+          <article class="lesson">
+            <div>
+              <h3>6. Return Codes</h3>
+              <p>Every command reports success or failure. In bash, <code>0</code> means success and nonzero means failure.</p>
+              <div class="lesson-note">Outcome: <code>$?</code> shows whether the most recent command worked.</div>
+            </div>
+            <div class="terminal" aria-label="Return code output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code><span class="cmd">$ true; echo $?</span>
+0
+
+<span class="cmd">$ false; echo $?</span>
+1</code></pre>
+            </div>
+          </article>
+
+          <article class="lesson">
+            <div>
+              <h3>7. Command Output</h3>
+              <p><code>$()</code> runs a command and stores its output in a variable. This is called command substitution.</p>
+              <div class="lesson-note">Outcome: the script can reuse information it discovered from another command.</div>
+            </div>
+            <div class="terminal" aria-label="Command substitution output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code>arch=$(uname -m)
+echo "Architecture: $arch"
+
+<span class="cmd">$ bash arch.sh</span>
+Architecture: x86_64</code></pre>
+            </div>
+          </article>
+
+          <article class="lesson">
+            <div>
+              <h3>8. Conditions</h3>
+              <p><code>if</code> runs a test and only executes the body when the test succeeds. Keep spaces around <code>[</code>, <code>=</code>, and <code>]</code>.</p>
+              <div class="lesson-note">Outcome: different input can lead to different script behavior.</div>
+            </div>
+            <div class="terminal" aria-label="Condition output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code>read name
+if [ "$name" = "Ada" ]; then
+  echo "Welcome back"
+fi
+
+<span class="cmd">$ bash check-name.sh</span>
+Ada
+Welcome back</code></pre>
+            </div>
+          </article>
+
+          <article class="lesson">
+            <div>
+              <h3>9. Arithmetic</h3>
+              <p>Use <code>(( ))</code> for numeric comparisons. It treats values as numbers instead of plain text.</p>
+              <div class="lesson-note">Outcome: the message appears only when the numeric test is true.</div>
+            </div>
+            <div class="terminal" aria-label="Arithmetic output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code>age=21
+if (( age >= 18 )); then
+  echo "Adult account"
+fi
+
+<span class="cmd">$ bash age.sh</span>
+Adult account</code></pre>
+            </div>
+          </article>
+
+          <article class="lesson">
+            <div>
+              <h3>10. Redirection And Files</h3>
+              <p><code>&gt;</code> writes output to a file. A here-document writes several lines until a marker such as <code>EOF</code>.</p>
+              <div class="lesson-note">Outcome: the script creates or replaces <code>README.md</code>, then <code>cat</code> shows what was written.</div>
+            </div>
+            <div class="terminal" aria-label="Redirection output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code>cat &gt; README.md &lt;&lt;EOF
+# Project Notes
+Generated by a script.
+EOF
+
+<span class="cmd">$ cat README.md</span>
+# Project Notes
+Generated by a script.</code></pre>
+            </div>
+          </article>
+
+          <article class="lesson">
+            <div>
+              <h3>11. Loops</h3>
+              <p>A <code>for</code> loop repeats a command for every matching item. Quote <code>"$file"</code> so filenames with spaces still work.</p>
+              <div class="lesson-note">Outcome: each <code>.txt</code> file gets a matching <code>.bak</code> copy.</div>
+            </div>
+            <div class="terminal" aria-label="Loop output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code>for file in *.txt; do
+  cp "$file" "$file.bak"
+done
+
+<span class="cmd">$ ls</span>
+notes.txt
+notes.txt.bak</code></pre>
+            </div>
+          </article>
+
+          <article class="lesson">
+            <div>
+              <h3>12. Negation And Waiting</h3>
+              <p><code>!</code> flips success and failure. This loop keeps checking until <code>grep</code> finally finds the word.</p>
+              <div class="lesson-note">Outcome: nothing final happens until the status file contains <code>success</code>.</div>
+            </div>
+            <div class="terminal" aria-label="Negation output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code>while ! grep "success" /tmp/status; do
+  sleep 30
+done
+echo "Ready"
+
+<span class="cmd">$ bash wait.sh</span>
+success
+Ready</code></pre>
+            </div>
+          </article>
+
+          <article class="lesson">
+            <div>
+              <h3>13. Background Jobs</h3>
+              <p><code>&amp;</code> starts a command in the background, so the script continues immediately. <code>$!</code> remembers the process ID.</p>
+              <div class="lesson-note">Outcome: the script prints the process ID without waiting for the long task to finish.</div>
+            </div>
+            <div class="terminal" aria-label="Background job output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code>sleep 60 &
+pid=$!
+echo "Started as $pid"
+
+<span class="cmd">$ bash background.sh</span>
+Started as 18421</code></pre>
+            </div>
+          </article>
+
+          <article class="lesson">
+            <div>
+              <h3>14. Functions</h3>
+              <p>A function names a reusable block of shell code. Arguments passed to the function become <code>$1</code>, <code>$2</code>, and so on inside it.</p>
+              <div class="lesson-note">Outcome: one function can produce different output depending on the value you pass in.</div>
+            </div>
+            <div class="terminal" aria-label="Function output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code>greet() {
+  echo "Hello, $1"
+}
+greet "Ada"
+
+<span class="cmd">$ bash function.sh</span>
+Hello, Ada</code></pre>
+            </div>
+          </article>
+
+          <article class="lesson">
+            <div>
+              <h3>15. Signals With trap</h3>
+              <p><code>trap</code> lets a script react to signals such as <code>Ctrl</code> + <code>C</code>. Use it to print a message or clean up temporary files.</p>
+              <div class="lesson-note">Outcome: pressing <code>Ctrl</code> + <code>C</code> runs your cleanup function instead of ending silently.</div>
+            </div>
+            <div class="terminal" aria-label="Trap output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code>cleanup() {
+  echo "Cleaning up"
+}
+trap cleanup INT
+while true; do sleep 1; done
+
+<span class="cmd">$ bash trap.sh</span>
+^C
+Cleaning up</code></pre>
+            </div>
+          </article>
+
+          <article class="lesson">
+            <div>
+              <h3>16. Text Helpers</h3>
+              <p>These programs process text streams: <code>grep</code> finds lines, <code>awk</code> prints fields, <code>sed</code> replaces text, <code>tr</code> swaps characters, and <code>wc -l</code> counts lines.</p>
+              <div class="lesson-note">Outcome: each helper transforms input into smaller, cleaner, or counted output.</div>
+            </div>
+            <div class="terminal" aria-label="Text helper output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code><span class="cmd">$ printf "red apple\nblue sky\n" | grep blue</span>
+blue sky
+
+<span class="cmd">$ echo "Ada 42" | awk '{print $2}'</span>
+42
+
+<span class="cmd">$ echo "old name" | sed "s/old/new/"</span>
+new name
+
+<span class="cmd">$ printf "a\nb\n" | tr '\n' ' '</span>
+a b
+
+<span class="cmd">$ printf "one\ntwo\n" | wc -l</span>
+2</code></pre>
+            </div>
+          </article>
+
+          <article class="lesson">
+            <div>
+              <h3>17. Dialogs</h3>
+              <p><code>dialog</code> draws simple terminal windows when it is installed. It is useful for scripts that need a yes/no question or a small form.</p>
+              <div class="lesson-note">Outcome: the user sees an interactive prompt. The script checks the answer and prints a matching message.</div>
+            </div>
+            <div class="terminal" aria-label="Dialog output">
+              <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+<pre><code>if dialog --yesno "Continue?" 6 24; then
+  echo "Continuing"
+else
+  echo "Stopped"
+fi
+
+<span class="cmd">$ bash ask.sh</span>
+<span class="note">A yes/no dialog opens in the terminal.</span>
+Continuing</code></pre>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="cheatsheet">
+      <div class="wrap">
+        <div class="section-header">
+          <h2>Compact Cheat Sheet</h2>
+          <p>Keep these close while you build muscle memory.</p>
+        </div>
+        <div class="cheatsheet">
+          <article class="card">
+            <h3>Navigation</h3>
+            <ul>
+              <li><code>cd ..</code> moves up one folder.</li>
+              <li><code>cd ~</code> returns to your home directory.</li>
+              <li><code>find . -name "*.log"</code> locates matching files.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Inspection</h3>
+            <ul>
+              <li><code>cat file</code> prints a file.</li>
+              <li><code>less file</code> opens a scrollable view.</li>
+              <li><code>tail -f app.log</code> follows new log lines.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Processes</h3>
+            <ul>
+              <li><code>ps aux</code> lists running processes.</li>
+              <li><code>kill PID</code> asks a process to stop.</li>
+              <li><code>top</code> shows live system activity.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Networking</h3>
+            <ul>
+              <li><code>ssh host</code> opens a remote shell.</li>
+              <li><code>curl URL</code> fetches a web resource.</li>
+              <li><code>scp file host:path</code> copies over SSH.</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="callout" style="margin-top: 1rem;">
+          Before running commands that delete, overwrite, or change permissions, print the target path with <code>pwd</code> and inspect matches with <code>ls</code>. A few seconds of checking can save a lot of rebuilding.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span>Built for GitHub Pages. No build step required.</span>
+      <a href="#top">Back to top</a>
+    </div>
+  </footer>
+</body>
+</html>
